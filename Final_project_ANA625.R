@@ -16,6 +16,10 @@ Original_data$ValidEnd <- as.Date(Original_data$ValidEnd,format="%m/%d/%Y")  #Ch
 Original_data$ValidStart <- as.Date(Original_data$ValidStart,format="%m/%d/%Y")  #Change factor to date variable type
 str(Original_data)  
 
+table(Original_data$target)
+#baseline
+4867 / (3140+4867)
+
 #Checking for missing value 
 sum(is.na(Original_data))  #Total missing value
 colSum(is.na(Original_data)) #Total missing value in each column
@@ -43,6 +47,7 @@ str(Original_data)
 ##########################################
 ###########  Create a model ##############
 ##########################################
+
 
 
 ##########################################
