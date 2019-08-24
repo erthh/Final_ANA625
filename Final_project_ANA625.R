@@ -4,12 +4,32 @@ library(ggplot2)
 library(ROCR)
 #import data 
 Original_data <- read.csv("drought_target.csv",header=T)
-
+vote_data <- read.csv("vote_drough.csv",header=T)
 ###############################
 ##### Data Pre processing #####
 ###############################
 
-#Data structure check
+#Data structure check (vote_data year 2012)
+names(vote_data)
+str(vote_data)
+# 0 is blue , 1 is red
+table(vote_data$target)
+#baseline when the model predict all RED = 0.79 
+2384 / (643+2384)
+
+#create working data
+working_data_2 <- data.frame(county = vote_data$county, state = vote_data$state, D0 = vote_data$D0,D1 = vote_data$D1,D2 = vote_data$D2,D3 = vote_data$D3,
+                             D4 = vote_data$D4,None = vote_data$None,Target = as.factor(vote_data$target))
+#splitting the data 
+#create(split) INDEX for training data set only. [It's not split the data]
+set.seed(1234)
+splitting_index_2 <- createDataPartition(working_data_2$Target , p=0.80 ,list=F)
+train_dataset_2 <- working_data_2[splitting_index_2,]
+test_dataset_2 <- working_data_2[-splitting_index_2,]
+
+
+
+#Data structure check (Original_data)
 names(Original_data)
 str(Original_data)
 colnames(Original_data)[1] <- "ID"  #Change column of X to ID 
@@ -18,6 +38,7 @@ Original_data$ValidStart <- as.Date(Original_data$ValidStart,format="%m/%d/%Y") 
 str(Original_data$target)  
 levels(Original_data$target)<-c("Red"=0,"Blue"=1)
 table(Original_data$target)
+
 #baseline when the model predict all BLUE = 0.60 
 4867 / (3140+4867)
 
@@ -62,13 +83,12 @@ pairs(working_data,main="Scatterplot Matrix males")
 boxplot(working_data[,])
 
 #splitting the data 
-#train 80 and test 20 
-
 #create(split) INDEX for training data set only. [It's not split the data]
 splitting_index <- createDataPartition(working_data$Target , p=0.60 ,list=F)
-
 train_dataset <- working_data[splitting_index,]
 test_dataset <- working_data[-splitting_index,]
+
+
 
 ##########################################
 ###########  Create a model ##############
@@ -78,13 +98,21 @@ test_dataset <- working_data[-splitting_index,]
 #----- Logistic Regression with Cross validation method ----#
 #-----------------------------------------------------------#
 
-trainControl <- trainControl(method = "cv", number = 10)
+#TrainControl for cross validation
+trainControl <- trainControl(method = "cv", number = 5) 
+
 Logistic_model_cv <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset , trControl = trainControl ,method="glm")
+summary(Logistic_model_cv)
+
+Logistic_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset_2 , trControl = trainControl ,method="glm")
 summary(Logistic_model_cv)
 
 #-----------------------------------------------------------#
 #------------------- Random Forrest ------------------------#
 #-----------------------------------------------------------#
+
+rf_model_cv <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset , trControl = trainControl ,method="ranger",)
+rf_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset_2 , trControl = trainControl ,method="ranger",)
 
 ##########################################
 ####### evaulate model result ############
@@ -97,9 +125,12 @@ summary(Logistic_model_cv)
 #predict value from our model
 logistic_predicted <- predict(Logistic_model_cv,newdata = test_dataset,type="raw")
 summary(logistic_predicted)
+logistic_predicted_2 <- predict(Logistic_model_cv_2,newdata = test_dataset,type="raw")
+summary(logistic_predicted_2) #vote data
 
 #Create confusion matrix
-logistic_cm <- confusionMatrix(test_dataset$Target,logistic_predicted)
+logistic_cm <- confusionMatrix(test_dataset$Target,logistic_predicted,mode="everything")
+logistic_cm_2 <- confusionMatrix(test_dataset$Target,logistic_predicted_2,mode="everything") #vote data
 
 # Prediction function, This function used to find other matrics
 logistic_prediction <- prediction(as.numeric(logistic_predicted),test_dataset$Target)
@@ -123,5 +154,34 @@ plot(lift.logictic, main="lift curve", colorize=T)
 #-----------------------------------------------------------#
 #----------------- Random Forrest Model --------------------#
 #-----------------------------------------------------------#
+
+#predict value from our model
+randomF_predicted <- predict(rf_model_cv,newdata = test_dataset,type="raw")
+randomF_predicted_2 <- predict(rf_model_cv_2,newdata = test_dataset_2,type="raw") #vote data
+
+#Create confusion matrix
+randomF_cm <- confusionMatrix(test_dataset$Target,randomF_predicted,mode="everything")
+randomF_cm_2 <- confusionMatrix(test_dataset_2$Target,randomF_predicted_2,mode="everything") #vote data 
+
+# Prediction function, This function used to find other matrics
+randomF_prediction <- prediction(as.numeric(randomF_predicted),test_dataset$Target)
+
+#Find ROC 
+ROCR_randomF = performance(randomF_prediction, "tpr", "fpr")
+#Find AUC
+auc.randomF <- performance(randomF_prediction,"auc")
+auc.randomF.value <- auc.tmp.reduced@y.values[[1]] #area under curve
+
+#Plot ROC and AUC curve
+plot(ROCR_randomF,colorize=T, main="ROC Curve")
+mtext(paste("AUC: ",round(auc.randomF.value,4)),line = -8)
+
+#lift chart 
+lift.randomF <- performance(randomF_prediction,"lift","rpp")
+#plot lift chart 
+plot(lift.randomF, main="lift curve", colorize=T)
+
+
+
 
 
