@@ -27,6 +27,7 @@ splitting_index_2 <- createDataPartition(working_data_2$Target , p=0.80 ,list=F)
 train_dataset_2 <- working_data_2[splitting_index_2,]
 test_dataset_2 <- working_data_2[-splitting_index_2,]
 
+model_temp <- train()
 
 
 #Data structure check (Original_data)
@@ -107,12 +108,20 @@ summary(Logistic_model_cv)
 Logistic_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset_2 , trControl = trainControl ,method="glm")
 summary(Logistic_model_cv)
 
+Logistic_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None+state  , train_dataset_2 , trControl = trainControl ,method="glm")
+summary(Logistic_model_cv)
+
+model_temp <- train(Target ~ D0 + D1 + D2 + D3 + D4 + None , train_dataset , trControl = trainControl , method = "glm", preProcess = c("zv","center","scale","pca"))
+plot(model_temp)
+model_temp2 <- train(Target ~ D0 + D1 + D2 + D3 + D4 + None , train_dataset , trControl = trainControl , tuneLength = 4 ,method = "ranger", preProcess = c("zv","center","scale","pca"))
+plot(model_temp2)
+model_temp2
 #-----------------------------------------------------------#
 #------------------- Random Forrest ------------------------#
 #-----------------------------------------------------------#
 
 rf_model_cv <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset , trControl = trainControl ,method="ranger",)
-rf_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset_2 , trControl = trainControl ,method="ranger",)
+rf_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None+state , train_dataset_2 , trControl = trainControl ,method="ranger",)
 
 ##########################################
 ####### evaulate model result ############
@@ -125,12 +134,12 @@ rf_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset_2 , trContro
 #predict value from our model
 logistic_predicted <- predict(Logistic_model_cv,newdata = test_dataset,type="raw")
 summary(logistic_predicted)
-logistic_predicted_2 <- predict(Logistic_model_cv_2,newdata = test_dataset,type="raw")
+logistic_predicted_2 <- predict(Logistic_model_cv_2,newdata = test_dataset_2,type="raw")
 summary(logistic_predicted_2) #vote data
 
 #Create confusion matrix
 logistic_cm <- confusionMatrix(test_dataset$Target,logistic_predicted,mode="everything")
-logistic_cm_2 <- confusionMatrix(test_dataset$Target,logistic_predicted_2,mode="everything") #vote data
+logistic_cm_2 <- confusionMatrix(test_dataset_2$Target,logistic_predicted_2,mode="everything") #vote data
 
 # Prediction function, This function used to find other matrics
 logistic_prediction <- prediction(as.numeric(logistic_predicted),test_dataset$Target)
