@@ -27,9 +27,6 @@ splitting_index_2 <- createDataPartition(working_data_2$Target , p=0.80 ,list=F)
 train_dataset_2 <- working_data_2[splitting_index_2,]
 test_dataset_2 <- working_data_2[-splitting_index_2,]
 
-model_temp <- train()
-
-
 #Data structure check (Original_data)
 names(Original_data)
 str(Original_data)
