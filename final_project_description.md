@@ -57,7 +57,6 @@ Confusion Matrix and Statistics
 |---|--- | --- |
 |Prediction | |  |
 | 0 | 0 | 1 | 
-|---|--- | --- |
 | 1 | 515 | 1908 |
 
 <pre><code>
