@@ -54,9 +54,10 @@ confusionMatrix(as.factor(logistic_pred_train),train_data$target,mode='everythin
 Confusion Matrix and Statistics
 
 | |Reference | |
-|Prediction |--- | --- |
+|---|--- | --- |
+|Prediction | |  |
 | 0 | 0 | 1 | 
-|   |--- | --- |
+|---|--- | --- |
 | 1 | 515 | 1908 |
 
 <pre><code>
