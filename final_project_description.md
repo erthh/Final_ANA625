@@ -65,7 +65,7 @@ Confusion Matrix and Statistics
     No Information Rate : 0.7875          
     P-Value [Acc > NIR] : 0.5118          
                   Kappa : 0               
- Mcnemar's Test P-Value : "<"2e-16
+ Mcnemar's Test P-Value : &lt2e-16
  			Sensitivity : 0.0000                         
             Specificity : 1.0000                         
          Pos Pred Value :    NaN                         
