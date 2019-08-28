@@ -90,7 +90,7 @@ knn_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
                        trControl = trainControl , 
                        method = "knn", 
                        preProcess = c("zv","center","scale","pca"))
-knn_model
+plot(knn_model)
 print(knn_model)
 
 #prediction
@@ -101,12 +101,14 @@ knn_pred_train <- predict(knn_model,type="raw")
 knn_pred_test <- predict(knn_model,newdata=test_data,type="raw")
 
 #Confusion Matrix with train data 
-confusionMatrix(as.factor(knn_pred_test),train_data$target,mode='everything')
+confusionMatrix(as.factor(knn_pred_train),train_data$target,mode='everything')
 
 #Confusion Matrix with test data
 confusionMatrix(as.factor(knn_pred_test),test_data$target,mode='everything')
 
+############################################################
 
+#Plot ROC and AUC 
 
 
 
