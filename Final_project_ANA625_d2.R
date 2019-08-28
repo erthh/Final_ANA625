@@ -44,31 +44,41 @@ trainControl <- trainControl(method = "cv", number = 5)
 logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data , 
                         trControl = trainControl , 
                         method = "glm", 
-                        preProcess = c("zv","center","scale","pca"))
+                        preProcess = c("zv","center","scale"))
 #predict 
 #train data set 
 logistic_pred_train <- predict(logistic_model,type="raw")
 summary(logistic_pred_train)
-#test data set 
-logistic_pred_test <- predict(logistic_model,newdata=test_data,type="raw")
-summary(logistic_pred_test)
 
 #Confusion Matrix with train data
 confusionMatrix(as.factor(logistic_pred_train),train_data$target,mode='everything')
 
+#test data set 
+logistic_pred_test <- predict(logistic_model,newdata=test_data,type="raw")
+summary(logistic_pred_test)
+
 #Confusion Matrix with test data
 confusionMatrix(as.factor(logistic_pred_test),test_data$target,mode='everything')
+
+#evaluate model
+coef(logistic_model$finalModel)
+
+#ROC and AUC 
+logistic_prediction <- prediction(as.numeric(logistic_pred_test),test_data$target)
+logistic_perf <- performance(logistic_prediction, "tpr", "fpr")
+plot(logistic_perf, main="ROC Curve")
 
 ###################################
 ######### Random Forrest ##########
 ###################################
+#rf_trainControl <- trainControl(method = "cv", number = 5)
 randomF_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data , 
                        trControl = trainControl , 
                        method = "ranger", 
                        tuneLength = 4,
-                       preProcess = c("zv","center","scale","pca"))
+                       preProcess = c("zv","center","scale"))
 plot(randomF_model)
-
+randomF_model
 #predict model with data
 #train data set 
 randomF_pred_train <- predict(randomF_model,type="raw")
@@ -83,13 +93,23 @@ confusionMatrix(as.factor(randomF_pred_train),train_data$target,mode='everything
 #Confusion Matrix with test data
 confusionMatrix(as.factor(randomF_pred_test),test_data$target,mode='everything')
 
+#ROC and AUC 
+rf_prediction <- prediction(as.numeric(randomF_pred_test),test_data$target)
+rf_perf <- performance(rf_prediction, "tpr", "fpr")
+plot(rf_perf, colorize=T,main="ROC Curve")
+
+#AUC 
+randomF_auc <- performance(rf_prediction,"auc")
+randomF_auc_value <- randomF_auc@y.values[[1]] #area under curve
+
 ###################################
 ############## KNN ################
 ###################################
 knn_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data , 
                        trControl = trainControl , 
                        method = "knn", 
-                       preProcess = c("zv","center","scale","pca"))
+                       tuneLength = 10,
+                       preProcess = c("zv","center","scale"))
 plot(knn_model)
 print(knn_model)
 
@@ -106,9 +126,17 @@ confusionMatrix(as.factor(knn_pred_train),train_data$target,mode='everything')
 #Confusion Matrix with test data
 confusionMatrix(as.factor(knn_pred_test),test_data$target,mode='everything')
 
+#ROC and AUC 
+knn_prediction <- prediction(as.numeric(knn_pred_test),test_data$target)
+knn_perf <- performance(knn_prediction, "tpr", "fpr")
+plot(knn_perf, colorize=T,main="ROC Curve")
+
+#AUC 
+knn_auc <- performance(knn_prediction,"auc")
+knn_auc_value <- knn_auc@y.values[[1]] #area under curve
+
 ############################################################
 
-#Plot ROC and AUC 
 
 
 
