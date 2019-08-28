@@ -14,7 +14,7 @@ logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
 
 </code></pre>
 
-*Result*
+**Result**
 <pre><code>
 Generalized Linear Model 
 
@@ -37,7 +37,7 @@ logistic_pred_train <- predict(logistic_model,type="raw")
 summary(logistic_pred_train)
 </code></pre>
 
-*Result*
+**Result**
 
 | 0 | 1 |
 |--- | --- |

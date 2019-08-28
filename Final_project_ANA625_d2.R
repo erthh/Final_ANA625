@@ -96,7 +96,7 @@ print(knn_model)
 #prediction
 #train data set 
 knn_pred_train <- predict(knn_model,type="raw")
-
+summary(knn_pred_train)
 #test data set 
 knn_pred_test <- predict(knn_model,newdata=test_data,type="raw")
 
