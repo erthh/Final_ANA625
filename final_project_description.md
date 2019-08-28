@@ -15,7 +15,7 @@ logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
 </code></pre>
 
 *Result*
-
+<pre><code>
 Generalized Linear Model 
 
 2423 samples
@@ -27,9 +27,9 @@ Resampling: Cross-Validated (5 fold)
 Summary of sample sizes: 1939, 1939, 1938, 1938, 1938 
 Resampling results:
 
-  *Accuracy   Kappa        *
+  Accuracy   Kappa        
   0.7870401  -0.0008218632
-
+<code><pre>
 
 ### Predict with training dataset 
 <pre><code>
