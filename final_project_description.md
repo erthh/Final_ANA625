@@ -49,24 +49,22 @@ summary(logistic_pred_train)
 confusionMatrix(as.factor(logistic_pred_train),train_data$target,mode='everything')
 </code></pre>
 
-*Result*
+**Result**
 
 Confusion Matrix and Statistics
 
-          Reference
-Prediction    0    1
-         0    0    0
-         1  515 1908
+| |Reference | |
+|Prediction |--- | --- |
+| 0 | 0 | 1 | 
+|   |--- | --- |
+| 1 | 515 | 1908 |
                                           
                Accuracy : 0.7875          
                  95% CI : (0.7706, 0.8036)
     No Information Rate : 0.7875          
     P-Value [Acc > NIR] : 0.5118          
-                                          
                   Kappa : 0               
-                                          
  Mcnemar's Test P-Value : <2e-16          
-                                          
             Sensitivity : 0.0000          
             Specificity : 1.0000          
          Pos Pred Value :    NaN          
@@ -78,7 +76,6 @@ Prediction    0    1
          Detection Rate : 0.0000          
    Detection Prevalence : 0.0000          
       Balanced Accuracy : 0.5000          
-                                          
        'Positive' Class : 0  
 
 ### Predict with test dataset 
@@ -88,7 +85,7 @@ logistic_pred_test <- predict(logistic_model,newdata=test_data,type="raw")
 summary(logistic_pred_test)
 </code></pre>
 
-*Result*
+**Result**
 
 | 0 | 1 |
 |--- | --- |
