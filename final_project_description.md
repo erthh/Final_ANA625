@@ -14,6 +14,8 @@ logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
 
 </code></pre>
 
+*Result*
+
 Generalized Linear Model 
 
 2423 samples
@@ -28,4 +30,41 @@ Resampling results:
   Accuracy   Kappa        
   0.7870401  -0.0008218632
 
-  
+
+### Predict with training dataset 
+<pre><code>
+logistic_pred_train <- predict(logistic_model,type="raw")
+summary(logistic_pred_train)
+</code></pre>
+
+*Result*
+
+
+| 0 | 1 |
+|--- | --- |
+| 0 | 604 |
+
+
+
+
+
+### Predict with test dataset 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

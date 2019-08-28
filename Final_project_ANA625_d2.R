@@ -2,6 +2,7 @@
 library(plyr)
 library(ggplot2)
 library(ROCR)
+library(caret)
 
 #import data 
 vote_data <- read.csv("vote_drough.csv",header=T)
@@ -44,7 +45,6 @@ logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
                         trControl = trainControl , 
                         method = "glm", 
                         preProcess = c("zv","center","scale","pca"))
-
 #predict 
 #train data set 
 logistic_pred_train <- predict(logistic_model,type="raw")
