@@ -132,21 +132,21 @@ Accuracy : 0.7881
 </code></pre>
 
 
-## KNN
+## KNN Model
 
 ### Model Result 
 
-	<pre><code>
-		knn_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data , 
+<pre><code>
+knn_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data , 
                        trControl = trainControl , 
                        method = "knn", 
                        preProcess = c("zv","center","scale","pca"))
-	</code></pre>
+</code></pre>
 
 *Result*
 
 <pre><code>
-	-Nearest Neighbors 
+Nearest Neighbors 
 
 2423 samples
    6 predictor
@@ -211,4 +211,39 @@ confusionMatrix(as.factor(knn_pred_train),train_data$target,mode='everything')
    Detection Prevalence : 0.04787         
       Balanced Accuracy : 0.54974         
        'Positive' Class : 0  
+</code></pre>
+
+### Confusion Matrix with test dataset 
+
+<pre><code>
+confusionMatrix(as.factor(knn_pred_test),test_data$target,mode='everything')	
+</code></pre>
+
+**Result**
+
+| |Reference | |
+|---|--- | --- |
+|Prediction | 0 | 1 |
+| 0 | 14 | 23 | 
+| 1 | 114 | 453 |
+
+<pre><code>
+	Accuracy : 0.7732         
+    95% CI : (0.7377, 0.806)
+    No Information Rate : 0.7881         
+    P-Value [Acc > NIR] : 0.8282         
+                  Kappa : 0.0825         
+ Mcnemar's Test P-Value : 1.48e-14       
+            Sensitivity : 0.10938        
+            Specificity : 0.95168        
+         Pos Pred Value : 0.37838        
+         Neg Pred Value : 0.79894        
+              Precision : 0.37838        
+                 Recall : 0.10938        
+                     F1 : 0.16970        
+             Prevalence : 0.21192        
+         Detection Rate : 0.02318        
+   Detection Prevalence : 0.06126        
+      Balanced Accuracy : 0.53053        
+       'Positive' Class : 0    
 </code></pre>
