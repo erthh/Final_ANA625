@@ -29,7 +29,7 @@ Resampling results:
 
   Accuracy   Kappa        
   0.7870401  -0.0008218632
-<code><pre>
+</code></pre>
 
 ### Predict with training dataset 
 <pre><code>
