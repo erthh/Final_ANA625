@@ -32,19 +32,28 @@ nrow(working_data)
 nrow(train_data)
 nrow(test_data)
 
+#plot
+
+hist(working_data$D0)
+hist(working_data$D1)
+hist(working_data$D2)
+hist(working_data$D3)
+hist(working_data$D4)
+hist(working_data$None)
+
 #create model
 
 #create trainControl for reuse 
-trainControl <- trainControl(method = "cv", number = 5) 
+trainControl <- trainControl(method = "repeatedcv", number = 5 , repeats = 5) 
 
 ###################################
 ####### Logistic Regression #######
 ###################################
 
-logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data , 
+logistic_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data, 
                         trControl = trainControl , 
                         method = "glm", 
-                        preProcess = c("zv","center","scale"))
+                        preProcess = c("center","scale"))
 #predict 
 #train data set 
 logistic_pred_train <- predict(logistic_model,type="raw")
@@ -58,7 +67,7 @@ logistic_pred_test <- predict(logistic_model,newdata=test_data,type="raw")
 summary(logistic_pred_test)
 
 #Confusion Matrix with test data
-confusionMatrix(as.factor(logistic_pred_test),test_data$target,mode='everything')
+logis_cm <- confusionMatrix(as.factor(logistic_pred_test),test_data$target,mode='everything')
 
 #evaluate model
 coef(logistic_model$finalModel)
@@ -68,6 +77,11 @@ logistic_prediction <- prediction(as.numeric(logistic_pred_test),test_data$targe
 logistic_perf <- performance(logistic_prediction, "tpr", "fpr")
 plot(logistic_perf, main="ROC Curve")
 
+#AUC 
+logistic_auc <- performance(rf_prediction,"auc")
+logistic_auc_value <- logistic_auc@y.values[[1]] #area under curve
+logistic_auc_value
+
 ###################################
 ######### Random Forrest ##########
 ###################################
@@ -76,9 +90,9 @@ randomF_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
                        trControl = trainControl , 
                        method = "ranger", 
                        tuneLength = 4,
-                       preProcess = c("zv","center","scale"))
+                       preProcess = c("center","scale"))
 plot(randomF_model)
-randomF_model
+print(randomF_model)
 #predict model with data
 #train data set 
 randomF_pred_train <- predict(randomF_model,type="raw")
@@ -91,7 +105,7 @@ summary(randomF_pred_test)
 confusionMatrix(as.factor(randomF_pred_train),train_data$target,mode='everything')
 
 #Confusion Matrix with test data
-confusionMatrix(as.factor(randomF_pred_test),test_data$target,mode='everything')
+randomF_cm <- confusionMatrix(as.factor(randomF_pred_test),test_data$target,mode='everything')
 
 #ROC and AUC 
 rf_prediction <- prediction(as.numeric(randomF_pred_test),test_data$target)
@@ -101,6 +115,7 @@ plot(rf_perf, colorize=T,main="ROC Curve")
 #AUC 
 randomF_auc <- performance(rf_prediction,"auc")
 randomF_auc_value <- randomF_auc@y.values[[1]] #area under curve
+randomF_auc_value
 
 ###################################
 ############## KNN ################
@@ -109,7 +124,7 @@ knn_model <- train(target ~ D0 + D1 + D2 + D3 + D4 + None , train_data ,
                        trControl = trainControl , 
                        method = "knn", 
                        tuneLength = 10,
-                       preProcess = c("zv","center","scale"))
+                       preProcess = c("center","scale"))
 plot(knn_model)
 print(knn_model)
 
@@ -124,7 +139,7 @@ knn_pred_test <- predict(knn_model,newdata=test_data,type="raw")
 confusionMatrix(as.factor(knn_pred_train),train_data$target,mode='everything')
 
 #Confusion Matrix with test data
-confusionMatrix(as.factor(knn_pred_test),test_data$target,mode='everything')
+knn_cm <- confusionMatrix(as.factor(knn_pred_test),test_data$target,mode='everything')
 
 #ROC and AUC 
 knn_prediction <- prediction(as.numeric(knn_pred_test),test_data$target)
@@ -134,8 +149,24 @@ plot(knn_perf, colorize=T,main="ROC Curve")
 #AUC 
 knn_auc <- performance(knn_prediction,"auc")
 knn_auc_value <- knn_auc@y.values[[1]] #area under curve
-
+knn_auc_value
 ############################################################
+#Result
+
+paste("AUC - Logistic: ", round(logistic_auc_value,4), "Random Forrest: ",round(randomF_auc_value,4),
+      "KNN: ",round(knn_auc_value,4))
+
+paste("Accuracy - Logistic",round(logis_cm$overall[1],4),"Random Forrest: ", round(randomF_cm$overall[1],4),
+      "KNN: ",round(knn_cm$overall[1],4))
+
+
+
+
+
+
+
+
+
 
 
 

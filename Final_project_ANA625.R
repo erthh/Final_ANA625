@@ -103,7 +103,7 @@ Logistic_model_cv <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset , trCont
 summary(Logistic_model_cv)
 
 Logistic_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None , train_dataset_2 , trControl = trainControl ,method="glm")
-summary(Logistic_model_cv)
+summary(Logistic_model_cv_2)
 
 Logistic_model_cv_2 <- train(Target ~ D0+D1+D2+D3+D4+None+state  , train_dataset_2 , trControl = trainControl ,method="glm")
 summary(Logistic_model_cv)
@@ -139,13 +139,13 @@ logistic_cm <- confusionMatrix(test_dataset$Target,logistic_predicted,mode="ever
 logistic_cm_2 <- confusionMatrix(test_dataset_2$Target,logistic_predicted_2,mode="everything") #vote data
 
 # Prediction function, This function used to find other matrics
-logistic_prediction <- prediction(as.numeric(logistic_predicted),test_dataset$Target)
+logistic_prediction <- prediction(as.numeric(logistic_predicted_2),test_dataset_2$Target)
 
 #Find ROC 
 ROCR_logistic = performance(logistic_prediction, "tpr", "fpr")
 #Find AUC
 auc.logis <- performance(logistic_prediction,"auc")
-auc.logistic.value <- auc.tmp.reduced@y.values[[1]] #area under curve
+auc.logistic.value <- auc.logis@y.values[[1]] #area under curve
 
 #Plot ROC and AUC curve
 plot(ROCR_logistic,colorize=T, main="ROC Curve")
