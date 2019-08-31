@@ -85,15 +85,27 @@ round(coef(logistic_model$finalModel),3)
 #AUC 
 
 ###################################
+######### Decision tree ###########
+###################################
+
+Decision_model <- train(target ~D0 + D1 +None +state , train_data , 
+                       trControl = rf_trainControl , 
+                       method = "rpart2", 
+                       tuneLength = 10,
+                       preProcess = c("center","scale"),
+                       metric="ROC")
+plot(Decision_model,main="Decision Tree's Max Tree Depth")
+
+###################################
 ######### Random Forrest ##########
 ###################################
 rf_trainControl <- trainControl(method="cv",number=5,classProbs=T,summaryFunction=twoClassSummary)
-randomF_model <- train(target ~D0 + D1 + D2 + D3 + D4+  None , train_data , 
+randomF_model <- train(target ~D0 + D1 +None +state , train_data , 
                        trControl = rf_trainControl , 
                        method = "ranger", 
                        tuneLength = 4,
                        preProcess = c("center","scale"))
-
+randomF_model
 plot(randomF_model)
 print(randomF_model)
 #predict model with data
@@ -117,7 +129,7 @@ randomF_cm <- confusionMatrix(as.factor(randomF_pred_test),test_data$target,mode
 knn_model <- train(target ~ D0 + D1 + D3 + D2 + D4 + None , train_data , 
                        trControl = trainControl, 
                        method = "knn", 
-                       tuneLength = 20,
+                       tuneLength = 10,
                        preProcess = c("center","scale"))
 plot(knn_model)
 print(knn_model)

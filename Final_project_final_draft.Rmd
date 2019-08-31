@@ -1,0 +1,284 @@
+---
+title: "Project2"
+author: "Marketne Noel"
+date: "8/25/2019"
+output: word_document
+---
+
+
+Set Up Enviroment 
+```{r include=FALSE}
+# Data Science Lifecycle 
+#     1. Get The Data -> gather data 
+#     2. Clean The Data -> handle: missing values, inaccurate data type, wrong observations 
+#     3. Explore The Data -> check for patterns, trends and transform
+#     4. Model the Data -> make predictive models 
+#     5. Interpret -> explain the results
+
+# set up libarires 
+packages <- c("dplyr", "plyr","ggformula", "caret", "pROC", "rpart", "rpart.plot", "psych", "car", "stats", "randomForest")
+
+# Install package if there are not on machine 
+for (p in packages) {
+  if (require(p)){ install.packages(p) }
+}
+
+# Add libraries
+# lapply(packages, FUN = library, character.only = T)
+
+```
+
+
+1. Set Data Frame
+```{r}
+# Set up the orginal data set
+master <- read.csv("vote_drough_1.csv",header=T)
+```
+
+2. Clean Data
+```{r}
+#--------- Check for missing values 
+sum(is.na(master))
+
+#--------- Check for variable data types
+str(master)
+
+# Fix data types 
+master$target_2012 <- as.factor(master$target_2012)
+master$target_2016 <- as.factor(master$target_2016)
+
+#--------- Clean Out unwated variables 
+#  Make Work data set 
+mentor <- master[,1:8] 
+mentor$target <- master[,13] # target 
+
+```
+
+3.1 Explore Data For Partterns: Numerical 
+```{r}
+# Create Scatter plot matrix 
+pairs(mentor[,3:9], pch = 21, bg = c("red", "blue")[unclass(mentor[,9])])
+
+# Compute Corrolation matrix 
+cor(mentor[,3:8]) # **** indepent variables have a high correlation
+
+#----  See variable distributions 
+# Numerical Variable Frquency Distribution
+multi.hist(mentor[,3:8], freq = T, bcol = "red")
+
+```
+
+
+3.2 Explore Data For Partterns: Categorical 
+```{r}
+# Create continegncy table 
+table(mentor[,9], mentor[,2])
+
+```
+
+
+3.3 Explore Data For Partterns: Check for Multicollinearity 
+```{r}
+str(mentor)
+# Make Full model 
+model.full <- glm(target ~ ., data = mentor[,3:9], family = "binomial")
+
+# compute the vif 
+vif(model.full)
+
+# Principal Component Analysis (Normalize variable by setting scale)
+pca <- prcomp(mentor[,3:8], scale = T)
+
+# See pca output (enginvector)
+pca
+
+# Get pca summary (std, prop variance and cumulative prop)
+summary(pca)
+
+# Make line Plot
+plot(pca, type = "l", main = "PCA plot") # elbo at 3 select PC1 & PC2 & PC3
+
+# Makee Scree Plot 
+biplot(pca, scale = 0)
+
+# Get the PCs
+PCs <- round(pca$x[,1:3], 2)
+
+# Get PCs summary 
+summary(PCs)
+
+# SE data distribution 
+multi.hist(PCs, freq = T, bcol = "red")
+
+# Create New data set with PCs
+expert <- cbind(PCs, mentor)
+
+```
+
+4 Model the Data: Make Train and Test Data
+```{r}
+# Set Seed
+set.seed(1234)
+# Create Training and Test Rows
+#rows <- sample(nrow(expert), nrow(expert) * 0.80)
+rows <- createDataPartition(expert$target, p = 0.80, list = F)
+# Create Test and Train data
+x1_train <- expert[rows,]
+x1_test <- expert[-rows,]
+
+#--- Check target Frequency 
+# table(x1_train$target)  # Train 
+# table(x1_test$target)   # Test
+
+```
+
+
+4.1 Model the Data: Logistic Regression Method: Train Model 
+```{r include=FALSE}
+# Data to model 
+# keep_pc <- c("PC1", "PC2", "PC3","state", "target")
+keep <-  c("None", "D0", "D1", "D2", "D3", "D4","state", "target") # Model with None Has better state + D0 + D1
+#---- Create Model Binomial 
+# Make Null model 
+model.null <- glm(target ~ 1, data = x1_train[keep], family = "binomial")
+
+# Make Full model 
+model.full <-  glm(target ~ ., data = x1_train[keep], family = "binomial")
+
+# See Data summary 
+#summary(model.null)
+#summary(model.full)
+
+# make Parsimonious Model to get best mod useing forward selection 
+model.step <- step(model.null, scope = list(lower = model.null, upper = model.full), direction = "forward")
+#model.step
+
+# train model 
+model.glm <- glm(formula = target ~ state + None + D0 + D1, data = x1_train[keep], family = "binomial")
+summary(model.glm)
+
+```
+
+4.2 Model the Data: Logistic Regression Method: Make Prediction
+```{r}
+# Set Seed
+set.seed(1234)
+
+# Make Prediction 
+pred.glm <- predict(model.glm, x1_test, type = "response")
+
+# Create confusion marix 
+pred <- as.factor(ifelse(pred.glm > 0.63, 1, 0))
+
+# Make Confusin matrix 
+confusionMatrix(data = pred, reference = x1_test$target, positive = "1", mode = "everything")
+# Confusion matrix explained 
+# https://towardsdatascience.com/understanding-confusion-matrix-a9ad42dcfd62
+
+# Kappa explained
+# https://thedatascientist.com/performance-measures-cohens-kappa-statistic/
+```
+
+4.3 Model the Data: Decison Tree
+```{r}
+# Data to model 
+# keep_pc <- c("PC1", "PC2", "PC3", "state", "target")
+keep <-  c("None", "D0", "D1", "D2", "D3", "D4", "state", "target") # Model with None Has better state + D0 + D1
+
+# Set seed
+set.seed(1234)
+
+# Train tree model
+model.tree <- rpart(target ~ state + None + D1 + D0, data = x1_train[keep], method = "class", control = rpart.control(cp = .01, minsplit = 3), model = T)
+
+# Create a Dicision tree
+rpart.plot(model.tree, type = 5, fallen.leaves = T)
+
+# Make prediction 
+pred.tree <- predict(model.tree, x1_test, type = "class")
+
+# Make confusion matrix 
+confusionMatrix(data = pred.tree, reference = x1_test$target, positive = "1", mode = "everything")
+
+```
+
+
+4.4 Model the Data: Random Forest 
+```{r}
+# Set Seed
+set.seed(1234)
+
+# Create random forest model with default mtry
+model.forest <- randomForest(target ~ state + None + D1 + D0, data = x1_train[keep], ntree = 500)
+model.forest
+# Make a prediction model 
+pred.forest <- predict(model.forest, x1_test[keep])
+
+# Get AIC
+mean(x1_test$target == pred.forest)
+
+# Confusion matrix 
+confusionMatrix(data = pred.forest, reference = x1_test$target, positive = "1", mode = "everything")
+```
+
+4.5 Model the Data: KNN 
+```{r message=FALSE, warning=FALSE}
+#create trainControl for reuse 
+trainControl <- trainControl(method = "repeatedcv", number = 5 , repeats = 5) 
+
+# Create Model 
+model.knn <- train(target ~ state + D0 + D1 + None , x1_train , 
+                       trControl = trainControl, 
+                       method = "knn", 
+                       tuneLength = 10,
+                       preProcess = c("center","scale"))
+
+plot(model.knn)
+#test data set 
+pred.knn <- predict(model.knn, newdata = x1_test, type = "raw")
+
+#Confusion Matrix with test data
+confusionMatrix(as.factor(pred.knn), x1_test$target, mode = 'everything')
+```
+
+4.6 Model the Data: Random Forest Method: Make ROC curve 
+```{r}
+# Make ROC
+roc.glm <- roc(x1_test$target, pred.glm)
+roc.tree <- roc(x1_test$target, as.numeric(pred.tree))
+roc.forest <- roc(x1_test$target, as.numeric(pred.forest))
+roc.knn <- roc(x1_test$target, as.numeric(pred.knn))
+
+# Compute AUC
+roc.glm$auc
+roc.tree$auc
+roc.forest$auc
+roc.knn$auc
+
+# PlotROC curve 
+plot(roc.glm, col = "green", print.auc=T, print.auc.y=.4, main = "Models' ROC Curve")
+plot(roc.tree, col = "purple", print.auc=T, print.auc.y=.3, add = T)
+plot(roc.forest, col = "brown", print.auc=T, print.auc.y=.2, add = T)
+plot(roc.knn, col = "red", print.auc=T, print.auc.y=.1, add = T)
+
+# Set legend
+legend("bottomright", legend=c("Logistic", "Tree",
+      "Forest", "KNN"), col=c("green", "purple", "brown","red"), lwd=4, cex=0.9,
+       text.col = c("green", "purple", "brown","red"), bty='n')
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
