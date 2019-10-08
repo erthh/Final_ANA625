@@ -154,7 +154,8 @@ model.step <- step(model.null, scope = list(lower = model.null, upper = model.fu
 #model.step
 
 # train model 
-model.glm <- glm(formula = target ~ state + None + D0 + D1, data = x1_train[keep], family = "binomial")
+model.glm <- glm(formula = target ~ state + None + D0 + D1, 
+                 data = x1_train[keep], family = "binomial")
 summary(model.glm)
 
 ```
